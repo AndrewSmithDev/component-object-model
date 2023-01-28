@@ -1,4 +1,4 @@
-import { render, RenderResult, screen } from "@testing-library/react";
+import { render, RenderResult } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SignUpData, SignUpForm, SignUpProps } from "./sign-up-form";
 
@@ -17,17 +17,37 @@ export class SignUpFormCOM {
     this.#submitButton = this.#utils.getByText("Submit");
   }
 
-  async fillForm({ email, password, confirmPassword }: SignUpData) {
-    await userEvent.type(this.#emailInput, email);
-    await userEvent.type(this.#passwordInput, password);
-    await userEvent.type(this.#confirmPasswordInput, confirmPassword);
+  async fillForm({ email, password, confirmPassword }: Partial<SignUpData>) {
+    if (email) await userEvent.type(this.#emailInput, email);
+    if (password) await userEvent.type(this.#passwordInput, password);
+    if (confirmPassword) await userEvent.type(this.#confirmPasswordInput, confirmPassword);
   }
 
   submit() {
     return userEvent.click(this.#submitButton);
   }
 
-  getValidationMessage(errorMessage: string): HTMLElement {
+  #getValidationMessage(errorMessage: string | RegExp) {
     return this.#utils.getByText(errorMessage);
+  }
+
+  getEmailRequiredMessage() {
+    return this.#getValidationMessage("Email is required");
+  }
+
+  getPasswordLengthMessage() {
+    return this.#getValidationMessage("Password must be at least 8 characters");
+  }
+
+  getPasswordRequiredMessage() {
+    return this.#getValidationMessage("Password is required");
+  }
+
+  getConfirmPasswordRequiredMessage() {
+    return this.#getValidationMessage("You must confirm your password");
+  }
+
+  getPasswordsDoNotMatchMessage() {
+    return this.#getValidationMessage("Passwords do not match");
   }
 }

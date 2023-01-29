@@ -215,7 +215,7 @@ This leads to a more streamlined and manageable testing process, ultimately resu
 
 ## Bonus
 
-If you don't like to use classes here is an alternative way to create a Component Object Model using functional approach.
+If you don't like to use classes here is an alternative way to create a Component Object Model using a functional approach.
 
 ```tsx
 import { render } from "@testing-library/react";

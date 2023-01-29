@@ -1,18 +1,12 @@
 ## Introduction
 
-Testing React components can be a daunting task, particularly when dealing with complex components that have many elements and complex interactions. To make the process more manageable, it's useful to separate the test code from the implementation details of the component. This means extracting the interactions and queries outside of your tests into a reusable module. This separation will make your tests easier to read and understand, while also making them easier to write and maintain.
+React components can be complex and difficult to test, especially when they contain multiple elements and interactions. To simplify testing, it's best to separate the test code from the component implementation details by creating a reusable module for interactions and queries. This makes tests easier to read, write, and maintain.
 
-In this post, we'll take a look at a powerful pattern that will allow us to do just that. I call this pattern the "Component Object Model" (COM) pattern. This pattern is inspired by the Page Object Model (POM) pattern, which is commonly used in end-to-end testing.
-
-The COM pattern is a way to organize your test code by abstracting the implementation details of the component into a separate class. This class, referred to as the COM, contains all of the interactions and queries that you will use to test the component. By separating the component logic from the test logic, the COM pattern makes it easy to reuse the same component interactions across multiple tests. It will also makes it easier to make changes to the component without affecting the test code.
+The Component Object Model (COM) pattern is a powerful way to organize test code by abstracting the implementation details of the component into a separate class. This class, referred to as the COM, contains all the interactions and queries used to test the component. By separating the component logic from the test logic, the COM pattern enables easy reuse of component interactions across multiple tests and minimizes the impact of component changes on the test code, while also making the tests easier to read and understand.
 
 ## Example
 
-Here's an example of how the COM pattern might be used to test a simple sign up form:
-
-### The Component
-
-The SignUpForm is a simple sign-up form with basic validation. The form is validated before submission and if there are no errors, the `onSubmit` prop is executed with the form data. If any errors are found, they will be shown and the `onSubmit` callback will not be run.
+Consider a simple SignUpForm component with basic validation. The form is validated before submission. If there are no errors, the onSubmit prop is executed with the form data. If errors are present, they will be shown and the onSubmit callback will not run.
 
 ```tsx
 // sign-up-form.tsx
@@ -32,12 +26,6 @@ export const SignUpForm = ({ onSubmit }: SignUpProps) => {
   const [emailMsg, setEmailMsg] = useState("");
   const [password, setPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
-
-  const validateForm = () => {
-    const errors: Partial<SignUpData> = {};
-
-    return errors;
-  };
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -86,11 +74,9 @@ export const SignUpForm = ({ onSubmit }: SignUpProps) => {
 
 ### The Component Object Model
 
-The `SignUpFormCOM` class encapsulates all of the interactions with the `SignUpForm` component. The test code will use the methods provided by the `SignUpFormCOM` class to fill in the form and submit it, making the test code simple and easy to understand.
+To test this component, we create the SignUpFormCOM class, which encapsulates all interactions with the SignUpForm component. The test code will use the methods provided by SignUpFormCOM to fill in the form and submit it, making the test code easy to read and understand.
 
-The `fillForm` method will take in an object with the values for the email and password, and will simulate the user filling in the form with those values. Similarly, the `submitForm` method will simulate a user submitting the form. This abstraction makes it easy to test the component and makes the test code easy to read and understand.
-
-This abstraction allows for easy reuse of the same component interactions across multiple tests, making it easy to make changes to the component without affecting the test code, since all interactions are located in one place rather than scattered throughout the test code.
+For example, the `fillForm` method will take in values for email and password and simulate the user filling in the form. The `submitForm` method will simulate a user submitting the form. This abstraction makes it easy to test the component and easy to reuse component interactions across multiple tests, without affecting the test code, since all interactions are in one place.
 
 ```typescript
 // sign-up-form.com.tsx
@@ -134,18 +120,9 @@ export class SignUpFormCOM {
 }
 ```
 
-### The Tests
+To use the COM in tests, create an instance of the COM and use its methods to interact with the component and assert its behavior.
 
-The test code tests the functionality of a `SignUpForm` component by testing the interactions that occur when the form is filled and submitted. To do this, it creates a new instance of the `SignUpFormCOM` class before each test, passing in a mock `onSubmit` function. After each test, the cleanup function is called to reset the test environment.
-
-The `SignUpFormCOM` class is used to encapsulate all interactions with the form, making it easy for the test code to use the methods provided by this class to fill in the form and submit it, making the test code simple and easy to understand.
-
-The tests check that:
-
-- When the form is filled with valid data, the `onSubmit` function is called with the form data.
-- When the form is filled with invalid data, the `onSubmit` function is not called.
-- An error message is displayed when the email and password fields are left empty.
-- An error message is displayed when the password is less than 8 characters.
+In the below example, we create an instance of the SignUpFormCOM and use its fillForm and submitForm methods to simulate filling out the form and submitting it. We also use the getEmailErrorMessage and getPasswordErrorMessage methods to retrieve any error messages displayed by the form.
 
 ```tsx
 // sign-up-form.spec.ts
@@ -208,11 +185,7 @@ describe("SignUpForm", () => {
 
 ## Conclusion
 
-Extracting the component interactions and queries into a separate "Component Object Model" (COM) class can provide numerous benefits when testing React components. This separation leads to increased reusability of the same component interactions across multiple tests, reducing the need for repetitive code. As a result, updating the component becomes a smoother process, since only the COM needs to be updated, instead of each individual test.
-
-By abstracting the implementation details of the component into a distinct class, the test code becomes more concise and easy to read, making it easier for developers to comprehend and maintain the test suite. The simplified structure of the test code helps keep the testing suite organized and efficient, making it easier to identify and fix any potential bugs.
-
-This leads to a more streamlined and manageable testing process, ultimately resulting in higher-quality software.
+Extracting the component interactions and queries into a separate "Component Object Model" (COM) class can provide numerous benefits when testing React components. This separation allows for the reuse of interactions across multiple tests, reducing the need for repetitive code. As a result, updating the component becomes a smoother process, since only the COM needs to be updated, instead of each individual test. Also, by abstracting the implementation details of the component into a distinct class, the test code becomes more concise and easy to read, making it easier for developers to comprehend and maintain the test suite. This simplicity makes it easier to identify and fix any potential bugs. This leads to a more streamlined and manageable testing process, ultimately resulting in higher-quality software.
 
 ## Bonus
 

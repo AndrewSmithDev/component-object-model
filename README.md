@@ -148,6 +148,7 @@ The tests check that:
 - An error message is displayed when the password is less than 8 characters.
 
 ```tsx
+// sign-up-form.spec.ts
 import { cleanup } from "@testing-library/react";
 import { vi, describe, expect, it, afterEach, beforeEach, Mock } from "vitest";
 import { SignUpFormCOM } from "./sign-up-form.com";

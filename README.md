@@ -12,7 +12,7 @@ Here's an example of how the COM pattern might be used to test a simple sign up 
 
 ### The Component
 
-The `SignUpForm` is a basic sign-up form that includes some basic validation. It has an `onSubmit` property, which is a callback function that is invoked when the form is submitted with valid data. The form includes three input fields for email, password, and confirm password. These fields are validated using the `validateForm` function, which checks for empty fields, ensures that the password and confirm password fields match, and that the password is at least 8 characters long. If any errors are present when the form is submitted, they will be displayed and the `onSubmit` callback will not be executed.
+The SignUpForm is a simple sign-up form with basic validation. The form is validated before submission and if there are no errors, the `onSubmit` prop is executed with the form data. If any errors are found, they will be shown and the `onSubmit` callback will not be run.
 
 ```tsx
 // sign-up-form.tsx
@@ -21,7 +21,6 @@ import { useState } from "react";
 export type SignUpData = {
   email: string;
   password: string;
-  confirmPassword: string;
 };
 
 export type SignUpProps = {
@@ -33,28 +32,20 @@ export const SignUpForm = ({ onSubmit }: SignUpProps) => {
   const [emailMsg, setEmailMsg] = useState("");
   const [password, setPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [confirmPasswordMsg, setConfirmPasswordMsg] = useState("");
 
   const validateForm = () => {
     const errors: Partial<SignUpData> = {};
-
-    if (email === "") errors.email = "Email is required";
-    if (password.length < 8) errors.password = "Password must be at least 8 characters";
-    if (password === "") errors.password = "Password is required";
-    if (confirmPassword === "") errors.confirmPassword = "You must confirm your password";
-    if (password !== confirmPassword) errors.confirmPassword = "Passwords do not match";
 
     return errors;
   };
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
+    setEmailMsg("");
+    setPasswordMsg("");
 
-    const errors = validateForm();
-    setEmailMsg(errors.email ?? "");
-    setPasswordMsg(errors.password ?? "");
-    setConfirmPasswordMsg(errors.confirmPassword ?? "");
+    if (email === "") setEmailMsg("Email is required");
+    if (password.length < 8) setPasswordMsg("Password must be at least 8 characters");
 
     const hasErrors = Object.keys(errors).length > 0;
     if (hasErrors) return;
@@ -86,17 +77,6 @@ export const SignUpForm = ({ onSubmit }: SignUpProps) => {
           onChange={(e) => setPassword(e.target.value)}
         />
       </label>
-      <p>{confirmPasswordMsg}</p>
-      <label>
-        Confirm Password:
-        <input
-          type="password"
-          name="password"
-          placeholder="Enter your password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
-      </label>
       <br />
       <button type="submit">Submit</button>
     </form>
@@ -108,7 +88,7 @@ export const SignUpForm = ({ onSubmit }: SignUpProps) => {
 
 The `SignUpFormCOM` class encapsulates all of the interactions with the `SignUpForm` component. The test code will use the methods provided by the `SignUpFormCOM` class to fill in the form and submit it, making the test code simple and easy to understand.
 
-The `fillForm` method will take in an object with the values for the email, password, and confirm password fields and will simulate the user filling in the form with those values. Similarly, the `submitForm` method will simulate a user submitting the form. This abstraction makes it easy to test the component and makes the test code easy to read and understand.
+The `fillForm` method will take in an object with the values for the email and password, and will simulate the user filling in the form with those values. Similarly, the `submitForm` method will simulate a user submitting the form. This abstraction makes it easy to test the component and makes the test code easy to read and understand.
 
 This abstraction allows for easy reuse of the same component interactions across multiple tests, making it easy to make changes to the component without affecting the test code, since all interactions are located in one place rather than scattered throughout the test code.
 
@@ -122,21 +102,18 @@ export class SignUpFormCOM {
   #utils: RenderResult;
   #emailInput: HTMLElement;
   #passwordInput: HTMLElement;
-  #confirmPasswordInput: HTMLElement;
   #submitButton: HTMLElement;
 
   constructor(props: SignUpProps) {
     this.#utils = render(<SignUpForm {...props} />);
     this.#emailInput = this.#utils.getByLabelText("Email:");
     this.#passwordInput = this.#utils.getByLabelText("Password:");
-    this.#confirmPasswordInput = this.#utils.getByLabelText("Confirm Password:");
     this.#submitButton = this.#utils.getByText("Submit");
   }
 
-  async fillForm({ email, password, confirmPassword }: Partial<SignUpData>) {
+  async fillForm({ email, password }: Partial<SignUpData>) {
     if (email) await userEvent.type(this.#emailInput, email);
     if (password) await userEvent.type(this.#passwordInput, password);
-    if (confirmPassword) await userEvent.type(this.#confirmPasswordInput, confirmPassword);
   }
 
   submit() {
@@ -154,18 +131,6 @@ export class SignUpFormCOM {
   getPasswordLengthMessage() {
     return this.#getValidationMessage("Password must be at least 8 characters");
   }
-
-  getPasswordRequiredMessage() {
-    return this.#getValidationMessage("Password is required");
-  }
-
-  getConfirmPasswordRequiredMessage() {
-    return this.#getValidationMessage("You must confirm your password");
-  }
-
-  getPasswordsDoNotMatchMessage() {
-    return this.#getValidationMessage("Passwords do not match");
-  }
 }
 ```
 
@@ -179,11 +144,8 @@ The tests check that:
 
 - When the form is filled with valid data, the `onSubmit` function is called with the form data.
 - When the form is filled with invalid data, the `onSubmit` function is not called.
-- An error message is displayed when the email field is left empty.
-- An error message is displayed when the password field is left empty.
-- An error message is displayed when the confirmation password field is left empty.
+- An error message is displayed when the email and password fields are left empty.
 - An error message is displayed when the password is less than 8 characters.
-- An error message is displayed when the passwords do not match.
 
 ```tsx
 import { cleanup } from "@testing-library/react";
@@ -223,28 +185,14 @@ describe("SignUpForm", () => {
     expect(onSubmit).toBeCalledTimes(0);
   });
 
-  it("ensures that an email is provided", async () => {
+  it("ensures that an email and password is provided", async () => {
     await form.fillForm({});
     await form.submit();
 
-    const errorMessage = form.getEmailRequiredMessage();
-    expect(errorMessage).toBeDefined();
-  });
-
-  it("ensures that a password is provided", async () => {
-    await form.fillForm({});
-    await form.submit();
-
-    const errorMessage = form.getPasswordRequiredMessage();
-    expect(errorMessage).toBeDefined();
-  });
-
-  it("ensures that a confirmation password is provided", async () => {
-    await form.fillForm({});
-    await form.submit();
-
-    const errorMessage = form.getConfirmPasswordRequiredMessage();
-    expect(errorMessage).toBeDefined();
+    const emailMessage = form.getEmailRequiredMessage();
+    const passwordMessage = form.getPasswordRequiredMessage();
+    expect(emailMessage).toBeDefined();
+    expect(passwordMessage).toBeDefined();
   });
 
   it("ensures that the password is at least 8", async () => {
@@ -254,20 +202,16 @@ describe("SignUpForm", () => {
     const errorMessage = form.getPasswordLengthMessage();
     expect(errorMessage).toBeDefined();
   });
-
-  it("ensures that the passwords match", async () => {
-    await form.fillForm({ password: "password1", confirmPassword: "password2" });
-    await form.submit();
-
-    const errorMessage = form.getPasswordsDoNotMatchMessage();
-    expect(errorMessage).toBeDefined();
-  });
 });
 ```
 
 ## Conclusion
 
-In conclusion, the Component Object Model (COM) pattern is a powerful technique that can greatly improve the maintainability and efficiency of your test suite. By extracting the interactions and queries of your React components into a reusable module, the COM pattern makes it easier to read, understand, and write tests. Additionally, it allows for easy reuse of the same component interactions across multiple tests, and also makes it easier to make changes to the component without affecting the test code. I hope this post has provided valuable insights into the benefits of using the COM pattern in your React testing strategy.
+Extracting the component interactions and queries into a separate "Component Object Model" (COM) class can provide numerous benefits when testing React components. This separation leads to increased reusability of the same component interactions across multiple tests, reducing the need for repetitive code. As a result, updating the component becomes a smoother process, since only the COM needs to be updated, instead of each individual test.
+
+By abstracting the implementation details of the component into a distinct class, the test code becomes more concise and easy to read, making it easier for developers to comprehend and maintain the test suite. The simplified structure of the test code helps keep the testing suite organized and efficient, making it easier to identify and fix any potential bugs.
+
+This leads to a more streamlined and manageable testing process, ultimately resulting in higher-quality software.
 
 ## Bonus
 
@@ -294,23 +238,19 @@ export const setupSignUpForm = (props: SignUpProps) => {
 
   const submit = () => userEvent.click(submitButton);
 
-  const getValidationMessage = (errorMessage: string | RegExp) => 
-    utils.getByText(errorMessage);
+  const getValidationMessage = (errorMessage: string | RegExp) => utils.getByText(errorMessage);
 
-  const getEmailRequiredMessage = () => 
-    getValidationMessage("Email is required");
+  const getEmailRequiredMessage = () => getValidationMessage("Email is required");
 
   const getPasswordLengthMessage = () =>
     getValidationMessage("Password must be at least 8 characters");
 
-  const getPasswordRequiredMessage = () => 
-    getValidationMessage("Password is required");
+  const getPasswordRequiredMessage = () => getValidationMessage("Password is required");
 
   const getConfirmPasswordRequiredMessage = () =>
     getValidationMessage("You must confirm your password");
 
-  const getPasswordsDoNotMatchMessage = () => 
-    getValidationMessage("Passwords do not match");
+  const getPasswordsDoNotMatchMessage = () => getValidationMessage("Passwords do not match");
 
   return {
     fillForm,

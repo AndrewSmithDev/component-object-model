@@ -219,21 +219,11 @@ export const setupSignUpForm = (props: SignUpProps) => {
   const getPasswordLengthMessage = () =>
     getValidationMessage("Password must be at least 8 characters");
 
-  const getPasswordRequiredMessage = () => getValidationMessage("Password is required");
-
-  const getConfirmPasswordRequiredMessage = () =>
-    getValidationMessage("You must confirm your password");
-
-  const getPasswordsDoNotMatchMessage = () => getValidationMessage("Passwords do not match");
-
   return {
     fillForm,
     submit,
     getEmailRequiredMessage,
     getPasswordLengthMessage,
-    getPasswordRequiredMessage,
-    getConfirmPasswordRequiredMessage,
-    getPasswordsDoNotMatchMessage,
   };
 };
 ```

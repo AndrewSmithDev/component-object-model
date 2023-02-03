@@ -1,6 +1,6 @@
 ## Introduction
 
-React components can be complex and difficult to test, especially when they have a lot elements and interactions. To simplify testing, it’s best to separate the test code from the code that is used to interact with the component. This will make your tests easier to read, write, and maintain.
+React components can be complex and difficult to test, especially when they have a lot elements and interactions. To simplify testing, it’s best to separate the test code from the code that is used to interact with the component. This will make your tests easier to read, understand, and maintain.
 
 A helpful solution for this is the Component Object Model (COM) pattern. This separates the code for interacting with the component from the code for testing it. The interactions and queries used in testing are stored in a class called the COM. This class has all the functionality you need to test the component. By putting the code used to interact with the component in reusable functions, you can use the same interactions in multiple tests. This makes it easy to change the component without affecting the test code because all interactions are in one place, not spread out in the test code. And, it has the added benefit of making the tests easier to read and understand.
 
@@ -88,8 +88,7 @@ For example, the fillForm method will take in values for email and password and 
 
 This abstraction makes it easy to test the component and easy to reuse component interactions across multiple tests. This also makes it easier to make changes to the component without affecting the test code since all interactions are handled in one place, the COM.
 
-```typescript
-// sign-up-form.com.tsx
+```typescript// sign-up-form.com.tsx
 import { render, RenderResult } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SignUpData, SignUpForm, SignUpProps } from "./sign-up-form";
@@ -118,15 +117,16 @@ export class SignUpFormCOM {
 
   #getValidationMessage(errorMessage: string) {
     return this.#utils.getByText(errorMessage);
-  }
-  ty;
+  }ty
 
   getEmailRequiredMessage() {
     return this.#getValidationMessage("Email is required");
   }
 
   getPasswordLengthMessage() {
-    return this.#getValidationMessage("Password must be at least 8 characters");
+    return this.#getValidationMessage(
+      "Password must be at least 8 characters"
+    );
   }
 }
 ```
